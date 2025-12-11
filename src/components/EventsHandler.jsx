@@ -6,94 +6,90 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState, useCallback } from "react";
 
-// EVENTS ARRAY (CUSTOM END TIME + START TIME)
+// EVENTS ARRAY
 const events = [
   {
+    name: "future reunion",
+    date: "1th January 2069",
+    time: "12:00PM",
+    venue: "dead sea",
+    start_time: "2069-01-01T12:00:00",
+    end_time: "2069-01-01T12:30:00",
+    timer: true,
+  },
+  {
     name: "test demo",
-    date: "24th April 2069",
+    date: "24th April 2026",
     time: "2:30PM",
     venue: "home home",
-    start_time: "2025-04-24T14:30:00", // event start
-    end_time: "2025-04-24T16:30:00",   // event end
+    start_time: "2025-12-11T18:39:00",
+    end_time: "2025-12-11T18:40:00",
     timer: true,
   },
 ];
 
 function EventsHandler() {
-  const event = events[0];
+  // STATE FOR ALL EVENTS
+  const [eventStates, setEventStates] = useState(
+    events.map(() => ({
+      status: "Upcoming",
+      timeLeft: "",
+    }))
+  );
 
-  const [status, setStatus] = useState("Upcoming");
-  const [timeLeft, setTimeLeft] = useState("");
+  // FORMAT FUNCTION
+  const formatTime = (ms) => {
+    if (ms <= 0) return "0s";
 
-  // ✅ Calculate event status
-  const calculateStatus = useCallback(() => {
-    const now = new Date();
-    const start = new Date(event.start_time);
-    const end = new Date(event.end_time);
+    const sec = Math.floor(ms / 1000);
+    const d = Math.floor(sec / 86400);
+    const h = Math.floor((sec % 86400) / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
 
-    if (now < start) {
-      setStatus("Upcoming");
-    } else if (now >= start && now <= end) {
-      setStatus("Ongoing");
-    } else {
-      setStatus("Past");
-    }
-  }, [event.start_time, event.end_time]);
+    return `${d > 0 ? d + "d " : ""}${h}h ${m}m ${s}s`;
+  };
 
-  // ✅ Calculate countdown
-  const calculateTimeLeft = useCallback(() => {
-    const now = new Date();
-    const start = new Date(event.start_time);
-    const end = new Date(event.end_time);
+  // PROCESS EACH EVENT SEPARATELY
+  const updateAllEvents = useCallback(() => {
+    const newStates = events.map((event, index) => {
+      const now = new Date();
+      const start = new Date(event.start_time);
+      const end = new Date(event.end_time);
 
-    if (status === "Upcoming") {
-      const diff = start - now;
-      const mins = Math.floor(diff / 60000);
-      setTimeLeft(`${mins} min left to Start`);
-    } else if (status === "Ongoing") {
-      const diff = end - now;
-      const mins = Math.floor(diff / 60000);
-      setTimeLeft(`${mins} min left to End`);
-    } else {
-      setTimeLeft("Past");
-    }
-  }, [status, event.start_time, event.end_time]);
+      let status = "Upcoming";
+      let timeLeft = "";
 
-  // STATUS CHECK LOOP
+      if (now < start) {
+        status = "Upcoming";
+        timeLeft = `${formatTime(start - now)} Upcoming`;
+
+      } else if (now >= start && now <= end) {
+        status = "Ongoing";
+        timeLeft = `${formatTime(end - now)} Ongoing`;
+
+      } else {
+        status = "Past Event";
+        timeLeft = "Past Event";
+      }
+
+      return { status, timeLeft };
+    });
+
+    setEventStates(newStates);
+  }, []);
+
+  // UPDATE EVERY SECOND
   useEffect(() => {
-    calculateStatus();
-    const interval = setInterval(calculateStatus, 60000);
+    updateAllEvents();
+    const interval = setInterval(updateAllEvents, 1000);
     return () => clearInterval(interval);
-  }, [calculateStatus]);
+  }, [updateAllEvents]);
 
-  // TIME LEFT LOOP
-  useEffect(() => {
-    calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 60000);
-    return () => clearInterval(interval);
-  }, [calculateTimeLeft]);
-
-  // FORCE PAST AFTER END TIME
-  useEffect(() => {
-    if (status === "Ongoing") {
-      const now = new Date().getTime();
-      const end = new Date(event.end_time).getTime();
-      const diff = end - now;
-
-      const timeout = setTimeout(() => {
-        setStatus("Past");
-        setTimeLeft("Past");
-      }, diff);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [status, event.end_time]);
-
-  // STATUS COLOR
-  const getColor = () => {
-    if (status === "Upcoming") return "#ff9100"; // orange
+  const getColor = (status) => {
+    if (status === "Upcoming") return "#ff9100";
     if (status === "Ongoing") return "green";
-    return "blue";
+    return "red";
   };
 
   return (
@@ -134,15 +130,15 @@ function EventsHandler() {
             <p
               className="event-stat"
               style={{
-                color: getColor(),
+                color: getColor(eventStates[index].status),
                 border: "2px solid orange",
                 borderRadius: "20px",
-                width: "30%",
-                transform: "translateX(130px)",
+                width: "60%",
+                textAlign: "center",
                 padding: "8px",
               }}
             >
-              {event.timer ? timeLeft : status}
+              {event.timer ? eventStates[index].timeLeft : eventStates[index].status}
             </p>
 
             <br />
