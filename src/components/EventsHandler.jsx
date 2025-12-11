@@ -7,16 +7,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 
 const events = [
-  /*
   {
-    name: "Inauguration",
-    date: "24th April 2025",
+    name: "test demo",
+    date: "24th April 2069",
     time: "2:30PM",
-    venue: "S.G. Hall",
+    venue: "home home",
     status: "Future",
     timer: true,
   },
-  */
 ];
 
 function EventsHandler() {
