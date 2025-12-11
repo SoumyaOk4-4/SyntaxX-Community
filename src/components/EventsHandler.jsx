@@ -18,7 +18,7 @@ const events = [
 ];
 
 function EventsHandler() {
-  const eventDate = new Date("2025-04-24T14:30:00").getTime(); // Change time for events
+  const eventDate = new Date(`${events[0].date} ${events[0].time}`).getTime(); // Change time for events
   const [timeLeft, setTimeLeft] = useState("");
   const [status, setStatus] = useState("Future"); // Track status separately
 
