@@ -14,6 +14,7 @@ const events = [
     venue: "home home",
     status: "Future",
     timer: true,
+    end_time: 60,
   },
 ];
 
@@ -32,6 +33,18 @@ function EventsHandler() {
         setTimeLeft("Ongoing");
         return;
       }
+
+      useEffect(() => {
+      if (status === "Ongoing") {
+        const endMinutes = events[0].end_time; // pull ending time from array
+        const timeout = setTimeout(() => {
+        setStatus("Past");
+      }, endMinutes * 60 * 1000); // convert minutes to ms
+
+        return () => clearTimeout(timeout);
+      }
+      }, [status]);
+
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
