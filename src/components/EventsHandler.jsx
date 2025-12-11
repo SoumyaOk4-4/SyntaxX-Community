@@ -14,37 +14,32 @@ const events = [
     venue: "home home",
     status: "Future",
     timer: true,
-    end_time: 60,
+    end_time: 60, // minutes until event becomes PAST
   },
 ];
 
 function EventsHandler() {
-  const eventDate = new Date(`${events[0].date} ${events[0].time}`).getTime(); // Change time for events
-  const [timeLeft, setTimeLeft] = useState("");
-  const [status, setStatus] = useState("Future"); // Track status separately
+  const event = events[0];
 
+  // Convert event date + time into valid JS format (removes "th")
+  const cleanedDate = event.date.replace(/(\d+)(st|nd|rd|th)/, "$1");
+  const eventDate = new Date(`${cleanedDate} ${event.time}`).getTime();
+
+  const [timeLeft, setTimeLeft] = useState("");
+  const [status, setStatus] = useState("Future");
+
+  // COUNTDOWN TIMER
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date().getTime();
       const diff = eventDate - now;
 
+      // Ongoing if time has arrived
       if (diff <= 0) {
         setStatus("Ongoing");
         setTimeLeft("Ongoing");
         return;
       }
-
-      useEffect(() => {
-      if (status === "Ongoing") {
-        const endMinutes = events[0].end_time; // pull ending time from array
-        const timeout = setTimeout(() => {
-        setStatus("Past");
-      }, endMinutes * 60 * 1000); // convert minutes to ms
-
-        return () => clearTimeout(timeout);
-      }
-      }, [status]);
-
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
@@ -62,13 +57,27 @@ function EventsHandler() {
     return () => clearInterval(timerInterval);
   }, [eventDate]);
 
+  // CUSTOM PAST LOGIC
+  useEffect(() => {
+    if (status === "Ongoing") {
+      const endMinutes = event.end_time; // mins from array
+
+      const timeout = setTimeout(() => {
+        setStatus("Past");
+        setTimeLeft("Past");
+      }, endMinutes * 60 * 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [status]);
+
   return (
     <>
       {events.map((event, index) => (
         <div className="event-content-container fadein_fadeout" key={index}>
           <h2 style={{ fontFamily: "Font2" }} className="event-box">
             <br />
-            <h2 style={{color: "#e7a129"}}>{event.name}</h2>
+            <h2 style={{ color: "#e7a129" }}>{event.name}</h2>
             <br />
             <p style={{ color: "rgb(157, 157, 157)" }}>
               <FontAwesomeIcon
@@ -92,6 +101,7 @@ function EventsHandler() {
               {event.venue}
             </p>
             <br />
+
             <p
               className="event-stat"
               style={{
@@ -108,8 +118,9 @@ function EventsHandler() {
                 padding: "8px",
               }}
             >
-              {event.timer === true ? `${timeLeft}` : status}
+              {event.timer ? timeLeft : status}
             </p>
+
             <br />
           </h2>
         </div>
